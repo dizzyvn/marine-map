@@ -3,6 +3,7 @@ import { MapPin, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { api } from '../lib/api';
+import SearchBar from './SearchBar';
 import type { Location } from '../types';
 
 interface LocationFormProps {
@@ -38,7 +39,7 @@ function LocationForm({ location, onSave, onCancel }: LocationFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="e.g., Coral Reef Area"
         />
       </div>
@@ -54,7 +55,7 @@ function LocationForm({ location, onSave, onCancel }: LocationFormProps) {
             value={latitude}
             onChange={(e) => setLatitude(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="16.0544"
           />
         </div>
@@ -69,7 +70,7 @@ function LocationForm({ location, onSave, onCancel }: LocationFormProps) {
             value={longitude}
             onChange={(e) => setLongitude(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="108.2022"
           />
         </div>
@@ -83,7 +84,7 @@ function LocationForm({ location, onSave, onCancel }: LocationFormProps) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="Add notes about this location..."
         />
       </div>
@@ -91,7 +92,7 @@ function LocationForm({ location, onSave, onCancel }: LocationFormProps) {
       <div className="flex gap-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="flex-1 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <Save className="w-4 h-4" />
           Save
@@ -129,6 +130,7 @@ export default function LocationsPage() {
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const markerRefs = useRef<{ [key: string]: L.Marker }>({});
 
   const loadLocations = async () => {
@@ -189,24 +191,28 @@ export default function LocationsPage() {
     setShowForm(true);
   };
 
+  // Filter locations based on search query
+  const filteredLocations = locations.filter(location =>
+    location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    location.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="h-full flex">
       {/* Left Sidebar */}
       <aside className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        {/* Header */}
+        {/* Search */}
         <div className="p-4 border-b border-gray-200">
-          <button
-            onClick={handleAddNew}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Add Location
-          </button>
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search locations..."
+          />
         </div>
 
         {/* Form Section */}
         {showForm && (
-          <div className="p-4 border-b border-gray-200 bg-blue-50">
+          <div className="p-4 border-b border-gray-200 bg-primary-light">
             <h3 className="text-sm font-medium mb-3">
               {editingLocation ? 'Edit Location' : 'New Location'}
             </h3>
@@ -227,16 +233,18 @@ export default function LocationsPage() {
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-500 text-sm">Loading...</div>
             </div>
-          ) : locations.length === 0 ? (
+          ) : filteredLocations.length === 0 ? (
             <div className="text-center text-gray-500 py-12 px-4">
-              <p className="text-sm">No locations saved yet</p>
+              <p className="text-sm">
+                {searchQuery ? 'No locations found' : 'No locations saved yet'}
+              </p>
               <p className="mt-2 text-xs text-gray-400">
-                Click "Add Location" to get started
+                {searchQuery ? 'Try a different search term' : 'Click "Add Location" to get started'}
               </p>
             </div>
           ) : (
             <div className="p-2 space-y-2">
-              {locations.map((location) => {
+              {filteredLocations.map((location) => {
                 const isSelected = selectedLocation?.id === location.id;
                 return (
                   <div
@@ -244,7 +252,7 @@ export default function LocationsPage() {
                     onClick={() => setSelectedLocation(location)}
                     className={`group relative rounded-lg p-3 transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-100 border-2 border-blue-500'
+                        ? 'bg-primary-light border-2 border-primary'
                         : 'bg-gray-50 hover:bg-gray-100'
                     }`}
                   >
@@ -271,7 +279,7 @@ export default function LocationsPage() {
                             e.stopPropagation();
                             handleEditLocation(location);
                           }}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          className="p-1.5 text-primary hover:bg-primary-light rounded transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -293,6 +301,17 @@ export default function LocationsPage() {
               })}
             </div>
           )}
+        </div>
+
+        {/* Add Location Button - Bottom */}
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={handleAddNew}
+            className="w-full bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Location
+          </button>
         </div>
       </aside>
 

@@ -101,7 +101,7 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
             onClick={() => setActiveTab('map')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'map'
-                ? 'text-blue-600 border-b-2 border-blue-600'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -112,7 +112,7 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
             onClick={() => setActiveTab('favorites')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'favorites'
-                ? 'text-blue-600 border-b-2 border-blue-600'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -123,7 +123,7 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
             onClick={() => setActiveTab('manual')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'manual'
-                ? 'text-blue-600 border-b-2 border-blue-600'
+                ? 'text-primary border-b-2 border-primary'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -179,7 +179,7 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
                     <button
                       key={location.id}
                       onClick={() => handleLocationSelect(location)}
-                      className="w-full p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
+                      className="w-full p-4 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-light transition-colors text-left"
                     >
                       <h3 className="font-medium text-gray-900 mb-1">
                         {location.name}
@@ -221,7 +221,7 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
                         setMarkerPosition([lat, lng]);
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="16.0544"
                   />
                 </div>
@@ -242,7 +242,7 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
                         setMarkerPosition([lat, lng]);
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="108.2022"
                   />
                 </div>
@@ -268,7 +268,7 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
             <button
               onClick={handleSave}
               disabled={!latitude || !longitude || isSaving}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors"
+              className="flex-1 bg-primary hover:bg-primary-hover disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors"
             >
               {isSaving ? 'Saving...' : 'Save Location'}
             </button>

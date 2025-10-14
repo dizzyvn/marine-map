@@ -113,7 +113,7 @@ export default function HomePage() {
                             <span className="text-xs text-gray-400">No GPS</span>
                           )}
                           {image.manually_tagged && (
-                            <span className="text-xs text-blue-600">Tagged</span>
+                            <span className="text-xs text-primary">Tagged</span>
                           )}
                         </div>
                       </div>
@@ -122,7 +122,7 @@ export default function HomePage() {
                           e.stopPropagation();
                           setTaggingImage(image);
                         }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-blue-50 text-blue-600 rounded"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-primary-light text-primary rounded"
                         title="Tag GPS Location"
                       >
                         <Tag className="w-4 h-4" />
@@ -148,7 +148,7 @@ export default function HomePage() {
                       onClick={() => toggleTag(tag.id)}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                         isSelected
-                          ? 'bg-blue-100 text-blue-600'
+                          ? 'bg-primary-light text-primary'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >

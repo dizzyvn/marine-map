@@ -96,7 +96,7 @@ export default function AlbumPage() {
                   onClick={() => setGpsFilter('all')}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                     gpsFilter === 'all'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-primary-light text-primary'
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
@@ -107,7 +107,7 @@ export default function AlbumPage() {
                   onClick={() => setGpsFilter('with_gps')}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                     gpsFilter === 'with_gps'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-primary-light text-primary'
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
@@ -118,7 +118,7 @@ export default function AlbumPage() {
                   onClick={() => setGpsFilter('without_gps')}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                     gpsFilter === 'without_gps'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-primary-light text-primary'
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
@@ -141,7 +141,7 @@ export default function AlbumPage() {
                       onClick={() => toggleTag(tag.id)}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
                         isSelected
-                          ? 'bg-blue-100 text-blue-600'
+                          ? 'bg-primary-light text-primary'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -188,7 +188,7 @@ export default function AlbumPage() {
                           e.stopPropagation();
                           setTaggingImage(image);
                         }}
-                        className="absolute top-2 right-2 bg-white hover:bg-blue-50 text-blue-600 p-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 bg-white hover:bg-primary-light text-primary p-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Tag GPS Location"
                       >
                         <Tag className="w-4 h-4" />

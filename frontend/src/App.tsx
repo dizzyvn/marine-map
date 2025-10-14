@@ -12,8 +12,13 @@ function Navigation() {
     <nav className="bg-white shadow-sm border-b">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-semibold text-gray-900">
-            Da Nang Marine Creature Map
+          <Link to="/" className="flex items-center gap-3">
+            <img
+              src="/logo.png"
+              alt="AquaSpot Logo"
+              className="w-12 h-12 object-contain"
+            />
+            <span className="text-xl font-semibold text-gray-900">AquaSpot</span>
           </Link>
 
           <div className="flex gap-2">
@@ -21,7 +26,7 @@ function Navigation() {
               to="/"
               className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
                 location.pathname === '/'
-                  ? 'bg-blue-100 text-blue-600'
+                  ? 'bg-primary-light text-primary'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -32,7 +37,7 @@ function Navigation() {
               to="/album"
               className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
                 location.pathname === '/album'
-                  ? 'bg-blue-100 text-blue-600'
+                  ? 'bg-primary-light text-primary'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -43,7 +48,7 @@ function Navigation() {
               to="/locations"
               className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
                 location.pathname === '/locations'
-                  ? 'bg-blue-100 text-blue-600'
+                  ? 'bg-primary-light text-primary'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >

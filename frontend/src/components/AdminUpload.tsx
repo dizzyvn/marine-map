@@ -42,7 +42,7 @@ export default function AdminUpload({ onUploadSuccess }: AdminUploadProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors z-50"
+        className="fixed bottom-6 right-6 bg-primary hover:bg-primary-hover text-white rounded-full p-4 shadow-lg transition-colors z-50"
       >
         <Upload className="w-6 h-6" />
       </button>
@@ -71,7 +71,7 @@ export default function AdminUpload({ onUploadSuccess }: AdminUploadProps) {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-light file:text-primary hover:file:bg-primary-light"
             />
           </div>
 
@@ -96,7 +96,7 @@ export default function AdminUpload({ onUploadSuccess }: AdminUploadProps) {
           <button
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors"
+            className="w-full bg-primary hover:bg-primary-hover disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors"
           >
             {isUploading ? 'Uploading...' : 'Upload'}
           </button>
