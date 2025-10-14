@@ -51,6 +51,10 @@ export const api = {
     return `${API_BASE_URL}/images/${filename}`;
   },
 
+  getThumbnailUrl(filename: string): string {
+    return `${API_BASE_URL}/api/thumbnails/${filename}`;
+  },
+
   // Locations API
   async getLocations(): Promise<LocationsResponse> {
     const response = await fetch(`${API_BASE_URL}/api/locations`);

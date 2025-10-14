@@ -17,7 +17,7 @@ export default function ImageCard({ image, onClick }: ImageCardProps) {
     >
       <div className="aspect-video w-full overflow-hidden bg-gray-100">
         <img
-          src={api.getImageUrl(image.filename)}
+          src={api.getThumbnailUrl(image.filename)}
           alt={image.filename}
           className="w-full h-full object-cover"
           loading="lazy"

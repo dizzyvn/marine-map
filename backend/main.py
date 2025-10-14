@@ -6,7 +6,8 @@ from typing import List, Optional
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from PIL import Image
 
 from services.image_processor import (
     extract_image_metadata,
@@ -28,8 +29,12 @@ app.add_middleware(
 BASE_DIR = Path(__file__).parent.parent
 FISHES_DIR = BASE_DIR / "fishes"
 DATA_DIR = BASE_DIR / "backend" / "data"
+THUMBNAILS_DIR = BASE_DIR / "backend" / "thumbnails"
 METADATA_FILE = DATA_DIR / "images_metadata.json"
 LOCATIONS_FILE = DATA_DIR / "locations.json"
+
+# Create thumbnails directory if it doesn't exist
+THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Mount static files (images)
 app.mount("/images", StaticFiles(directory=str(FISHES_DIR)), name="images")
@@ -61,6 +66,29 @@ def save_locations(data: List[dict]):
     """Save locations to JSON file."""
     with open(LOCATIONS_FILE, "w") as f:
         json.dump(data, f, indent=2)
+
+
+def generate_thumbnail(image_path: Path, thumbnail_path: Path, size: tuple = (400, 400)):
+    """Generate a thumbnail for an image."""
+    try:
+        with Image.open(image_path) as img:
+            # Convert RGBA to RGB if necessary
+            if img.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = background
+
+            # Create thumbnail maintaining aspect ratio
+            img.thumbnail(size, Image.Resampling.LANCZOS)
+
+            # Save thumbnail
+            img.save(thumbnail_path, "JPEG", quality=85, optimize=True)
+            return True
+    except Exception as e:
+        print(f"Error generating thumbnail for {image_path}: {e}")
+        return False
 
 
 @app.on_event("startup")
@@ -116,6 +144,41 @@ async def get_image_details(filename: str):
             return img
 
     raise HTTPException(status_code=404, detail="Image not found")
+
+
+@app.get("/api/thumbnails/{filename}")
+async def get_thumbnail(filename: str):
+    """Get thumbnail for an image. Generate and cache if not exists."""
+    # Check if original image exists
+    image_path = FISHES_DIR / filename
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # Thumbnail path
+    thumbnail_path = THUMBNAILS_DIR / f"thumb_{filename}"
+    # Ensure thumbnail has .jpg extension
+    if not thumbnail_path.suffix.lower() in ['.jpg', '.jpeg']:
+        thumbnail_path = thumbnail_path.with_suffix('.jpg')
+
+    # Check if thumbnail exists and is valid (newer than original)
+    thumbnail_valid = False
+    if thumbnail_path.exists():
+        thumb_mtime = thumbnail_path.stat().st_mtime
+        image_mtime = image_path.stat().st_mtime
+        thumbnail_valid = thumb_mtime >= image_mtime
+
+    # Generate thumbnail if needed
+    if not thumbnail_valid:
+        success = generate_thumbnail(image_path, thumbnail_path)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to generate thumbnail")
+
+    # Return the thumbnail
+    return FileResponse(
+        thumbnail_path,
+        media_type="image/jpeg",
+        headers={"Cache-Control": "public, max-age=86400"}  # Cache for 24 hours
+    )
 
 
 @app.post("/api/admin/upload")

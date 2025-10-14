@@ -18,3 +18,6 @@ dist/
 
 # Data files
 backend/data/*.json
+
+# Cached thumbnails
+backend/thumbnails/
