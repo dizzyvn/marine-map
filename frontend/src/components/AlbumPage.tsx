@@ -12,6 +12,7 @@ import type { ImageMetadata } from '../types';
 type GpsFilter = 'all' | 'with_gps' | 'without_gps';
 
 export default function AlbumPage() {
+  const [allImages, setAllImages] = useState<ImageMetadata[]>([]); // Unfiltered images for calendar
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -37,15 +38,25 @@ export default function AlbumPage() {
     return datePart.replace(/:/g, '-'); // Convert to "YYYY-MM-DD"
   };
 
-  // Compute set of dates that have images
+  // Compute set of dates that have images (from all unfiltered images)
   const datesWithImages = useMemo(() => {
     const dates = new Set<string>();
-    images.forEach(img => {
+    allImages.forEach(img => {
       const date = parseImageDate(img.datetimeoriginal);
       if (date) dates.add(date);
     });
     return dates;
-  }, [images]);
+  }, [allImages]);
+
+  // Load all images once for calendar (no filters)
+  const loadAllImages = async () => {
+    try {
+      const data = await api.getImages();
+      setAllImages(data.images);
+    } catch (error) {
+      console.error('Failed to load all images:', error);
+    }
+  };
 
   const loadImages = async () => {
     try {
@@ -78,6 +89,11 @@ export default function AlbumPage() {
       setLoading(false);
     }
   };
+
+  // Load all images once on mount for calendar
+  useEffect(() => {
+    loadAllImages();
+  }, []);
 
   useEffect(() => {
     loadImages();
@@ -126,10 +142,12 @@ export default function AlbumPage() {
   };
 
   const handleUploadSuccess = () => {
+    loadAllImages(); // Reload all images for calendar
     loadImages();
   };
 
   const handleGPSTagSuccess = () => {
+    loadAllImages(); // Reload all images for calendar
     loadImages();
     setSelectedImages([]); // Clear selection after successful batch tag
   };

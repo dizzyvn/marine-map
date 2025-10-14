@@ -114,33 +114,15 @@ export default function Calendar({ datesWithImages, selectedDate, onDateSelect }
               disabled={!hasImages}
               className={`
                 aspect-square text-xs rounded transition-colors
-                ${hasImages ? 'cursor-pointer' : 'cursor-default text-gray-300'}
-                ${isSelected ? 'bg-primary text-white font-semibold' : ''}
-                ${!isSelected && hasImages ? 'hover:bg-gray-100 text-gray-700' : ''}
-                ${!isSelected && !hasImages ? 'text-gray-300' : ''}
-                ${isToday && !isSelected ? 'border border-primary' : ''}
+                ${hasImages ? 'cursor-pointer hover:bg-gray-100 text-gray-700' : 'cursor-default text-gray-300'}
+                ${isSelected ? 'border-2 border-primary font-semibold' : ''}
+                ${isToday && !isSelected ? 'border border-gray-400' : ''}
               `}
             >
               {day}
             </button>
           );
         })}
-      </div>
-
-      {/* Legend */}
-      <div className="mt-3 pt-3 border-t border-gray-200 space-y-1">
-        <div className="flex items-center gap-2 text-xs text-gray-600">
-          <div className="w-5 h-5 bg-primary rounded flex items-center justify-center text-white font-semibold">1</div>
-          <span>Selected</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-gray-600">
-          <div className="w-5 h-5 border border-primary rounded flex items-center justify-center">1</div>
-          <span>Today</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-gray-600">
-          <div className="w-5 h-5 bg-gray-100 rounded flex items-center justify-center">1</div>
-          <span>Has images</span>
-        </div>
       </div>
 
       {selectedDate && (
