@@ -24,7 +24,9 @@ export default function AlbumPage() {
   const [viewingImage, setViewingImage] = useState<ImageMetadata | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [openMenuImage, setOpenMenuImage] = useState<string | null>(null);
+  const [openBatchMenu, setOpenBatchMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const batchMenuRef = useRef<HTMLDivElement>(null);
 
   const availableTags = [
     { id: 'fish', name: 'Fish', icon: Fish },
@@ -125,17 +127,6 @@ export default function AlbumPage() {
     );
   };
 
-  const handleBatchTag = () => {
-    if (selectedImages.length > 0) {
-      const firstImage = images.find(img => img.filename === selectedImages[0]);
-      if (firstImage) {
-        setTaggingImage(firstImage);
-        // Exit selection mode after opening batch tag modal
-        setIsSelectionMode(false);
-      }
-    }
-  };
-
   const toggleSelectionMode = () => {
     setIsSelectionMode(!isSelectionMode);
     if (isSelectionMode) {
@@ -177,19 +168,57 @@ export default function AlbumPage() {
     alert('Tag functionality coming soon!');
   };
 
-  // Close menu when clicking outside
+  const handleBatchAddLocation = () => {
+    if (selectedImages.length > 0) {
+      const firstImage = images.find(img => img.filename === selectedImages[0]);
+      if (firstImage) {
+        setTaggingImage(firstImage);
+        setIsSelectionMode(false);
+        setOpenBatchMenu(false);
+      }
+    }
+  };
+
+  const handleBatchAddTag = () => {
+    setOpenBatchMenu(false);
+    // TODO: Implement batch tag functionality
+    alert('Batch tag functionality coming soon!');
+  };
+
+  const handleBatchDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedImages.length} ${selectedImages.length === 1 ? 'image' : 'images'}?`)) {
+      return;
+    }
+
+    try {
+      await Promise.all(selectedImages.map(filename => api.deleteImage(filename)));
+      setOpenBatchMenu(false);
+      setSelectedImages([]);
+      setIsSelectionMode(false);
+      loadAllImages();
+      loadImages();
+    } catch (error) {
+      console.error('Failed to delete images:', error);
+      alert('Failed to delete some images');
+    }
+  };
+
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenMenuImage(null);
       }
+      if (batchMenuRef.current && !batchMenuRef.current.contains(event.target as Node)) {
+        setOpenBatchMenu(false);
+      }
     };
 
-    if (openMenuImage) {
+    if (openMenuImage || openBatchMenu) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [openMenuImage]);
+  }, [openMenuImage, openBatchMenu]);
 
   const handleUploadSuccess = () => {
     loadAllImages(); // Reload all images for calendar
@@ -323,13 +352,45 @@ export default function AlbumPage() {
                 )}
 
                 {isSelectionMode && selectedImages.length > 0 && (
-                  <button
-                    onClick={handleBatchTag}
-                    className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <Tag className="w-4 h-4" />
-                    Tag {selectedImages.length} {selectedImages.length === 1 ? 'Image' : 'Images'}
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenBatchMenu(!openBatchMenu)}
+                      className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                      Edit {selectedImages.length} {selectedImages.length === 1 ? 'Image' : 'Images'}
+                    </button>
+
+                    {/* Batch Edit Dropdown Menu */}
+                    {openBatchMenu && (
+                      <div
+                        ref={batchMenuRef}
+                        className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20"
+                      >
+                        <button
+                          onClick={handleBatchAddLocation}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <MapPin className="w-4 h-4" />
+                          Add location to {selectedImages.length} {selectedImages.length === 1 ? 'image' : 'images'}
+                        </button>
+                        <button
+                          onClick={handleBatchAddTag}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <Tag className="w-4 h-4" />
+                          Add tag to {selectedImages.length} {selectedImages.length === 1 ? 'image' : 'images'}
+                        </button>
+                        <button
+                          onClick={handleBatchDelete}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete {selectedImages.length} {selectedImages.length === 1 ? 'image' : 'images'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
