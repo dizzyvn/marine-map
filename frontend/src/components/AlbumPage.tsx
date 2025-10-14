@@ -141,6 +141,11 @@ export default function AlbumPage() {
     }
   };
 
+  const selectAllImages = () => {
+    const allFilenames = images.map(img => img.filename);
+    setSelectedImages(allFilenames);
+  };
+
   const handleUploadSuccess = () => {
     loadAllImages(); // Reload all images for calendar
     loadImages();
@@ -260,8 +265,17 @@ export default function AlbumPage() {
                   }`}
                 >
                   <Check className="w-4 h-4" />
-                  {isSelectionMode ? 'Exit Selection' : 'Select Images'}
+                  {isSelectionMode ? 'Exit Selection' : 'Select'}
                 </button>
+
+                {isSelectionMode && (
+                  <button
+                    onClick={selectAllImages}
+                    className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Select all
+                  </button>
+                )}
 
                 {isSelectionMode && selectedImages.length > 0 && (
                   <button
