@@ -1,0 +1,20 @@
+# Images
+fishes/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Data files
+backend/data/*.json
