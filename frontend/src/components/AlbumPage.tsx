@@ -328,7 +328,7 @@ export default function AlbumPage() {
         <main className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-gray-50">
             {/* Selection Controls - Top Right */}
-            <div className="sticky top-0 z-10 bg-gray-50 px-6 pt-6 pb-2">
+            <div className="sticky top-0 z-10 bg-gray-50 px-6 pt-8 pb-2">
               <div className="flex justify-end gap-2">
                 <button
                   onClick={toggleSelectionMode}
@@ -395,7 +395,7 @@ export default function AlbumPage() {
               </div>
             </div>
 
-            <div className="px-6 pb-6">
+            <div className="px-6 pt-4 pb-6">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-gray-500">Loading...</div>
