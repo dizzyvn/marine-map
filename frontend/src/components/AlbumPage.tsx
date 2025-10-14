@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { MapPin, MapPinOff, Tag, Fish, Waves, Shell, Star } from 'lucide-react';
+import { MapPin, MapPinOff, Tag, Fish, Waves, Shell, Star, Check } from 'lucide-react';
 import SearchBar from './SearchBar';
 import ImageCard from './ImageCard';
 import AdminUpload from './AdminUpload';
 import GPSTagModal from './GPSTagModal';
+import ImageViewer from './ImageViewer';
 import { api } from '../lib/api';
 import type { ImageMetadata } from '../types';
 
@@ -15,7 +16,10 @@ export default function AlbumPage() {
   const [loading, setLoading] = useState(true);
   const [gpsFilter, setGpsFilter] = useState<GpsFilter>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [taggingImage, setTaggingImage] = useState<ImageMetadata | null>(null);
+  const [viewingImage, setViewingImage] = useState<ImageMetadata | null>(null);
 
   const availableTags = [
     { id: 'fish', name: 'Fish', icon: Fish },
@@ -60,8 +64,38 @@ export default function AlbumPage() {
     );
   };
 
-  const handleImageSelect = (image: ImageMetadata) => {
-    setTaggingImage(image);
+  const handleImageClick = (image: ImageMetadata) => {
+    if (isSelectionMode) {
+      toggleImageSelection(image.filename);
+    } else {
+      setViewingImage(image);
+    }
+  };
+
+  const toggleImageSelection = (filename: string) => {
+    setSelectedImages(prev =>
+      prev.includes(filename)
+        ? prev.filter(f => f !== filename)
+        : [...prev, filename]
+    );
+  };
+
+  const handleBatchTag = () => {
+    if (selectedImages.length > 0) {
+      const firstImage = images.find(img => img.filename === selectedImages[0]);
+      if (firstImage) {
+        setTaggingImage(firstImage);
+        // Exit selection mode after opening batch tag modal
+        setIsSelectionMode(false);
+      }
+    }
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    if (isSelectionMode) {
+      setSelectedImages([]);
+    }
   };
 
   const handleUploadSuccess = () => {
@@ -70,6 +104,7 @@ export default function AlbumPage() {
 
   const handleGPSTagSuccess = () => {
     loadImages();
+    setSelectedImages([]); // Clear selection after successful batch tag
   };
 
   return (
@@ -161,7 +196,34 @@ export default function AlbumPage() {
         {/* Main Content Area - Grid View */}
         <main className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-gray-50">
-            <div className="p-6">
+            {/* Selection Controls - Top Right */}
+            <div className="sticky top-0 z-10 bg-gray-50 px-6 pt-6 pb-2">
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={toggleSelectionMode}
+                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                    isSelectionMode
+                      ? 'bg-primary text-white'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Check className="w-4 h-4" />
+                  {isSelectionMode ? 'Exit Selection' : 'Select Images'}
+                </button>
+
+                {isSelectionMode && selectedImages.length > 0 && (
+                  <button
+                    onClick={handleBatchTag}
+                    className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Tag className="w-4 h-4" />
+                    Tag {selectedImages.length} {selectedImages.length === 1 ? 'Image' : 'Images'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="px-6 pb-6">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-gray-500">Loading...</div>
@@ -177,24 +239,43 @@ export default function AlbumPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {images.map((image) => (
-                    <div key={image.filename} className="relative group">
-                      <ImageCard
-                        image={image}
-                        onClick={() => handleImageSelect(image)}
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTaggingImage(image);
-                        }}
-                        className="absolute top-2 right-2 bg-white hover:bg-primary-light text-primary p-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Tag GPS Location"
+                  {images.map((image) => {
+                    const isSelected = selectedImages.includes(image.filename);
+                    return (
+                      <div
+                        key={image.filename}
+                        className={`relative group ${
+                          isSelectionMode ? 'cursor-pointer' : ''
+                        } ${isSelected ? 'ring-4 ring-green-500 rounded-lg' : ''}`}
                       >
-                        <Tag className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        <ImageCard
+                          image={image}
+                          onClick={() => handleImageClick(image)}
+                        />
+
+                        {/* Green check mark - shown when selected */}
+                        {isSelectionMode && isSelected && (
+                          <div className="absolute bottom-2 right-2 bg-green-500 rounded-full p-1 shadow-lg">
+                            <Check className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+
+                        {/* Tag button - only shown when NOT in selection mode */}
+                        {!isSelectionMode && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTaggingImage(image);
+                            }}
+                            className="absolute top-2 right-2 bg-white hover:bg-primary-light text-primary p-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Tag GPS Location"
+                          >
+                            <Tag className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -209,8 +290,17 @@ export default function AlbumPage() {
       {taggingImage && (
         <GPSTagModal
           image={taggingImage}
+          images={selectedImages.length > 0 ? images.filter(img => selectedImages.includes(img.filename)) : undefined}
           onClose={() => setTaggingImage(null)}
           onSuccess={handleGPSTagSuccess}
+        />
+      )}
+
+      {/* Image Viewer Modal */}
+      {viewingImage && (
+        <ImageViewer
+          image={viewingImage}
+          onClose={() => setViewingImage(null)}
         />
       )}
     </>

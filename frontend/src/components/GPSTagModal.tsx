@@ -7,6 +7,7 @@ import type { ImageMetadata, Location } from '../types';
 
 interface GPSTagModalProps {
   image: ImageMetadata;
+  images?: ImageMetadata[]; // Optional: for batch tagging
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -20,7 +21,9 @@ function MapClickHandler({ onLocationSelect }: { onLocationSelect: (lat: number,
   return null;
 }
 
-export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalProps) {
+export default function GPSTagModal({ image, images, onClose, onSuccess }: GPSTagModalProps) {
+  const isBatchMode = images && images.length > 0;
+  const imageCount = isBatchMode ? images.length : 1;
   const [latitude, setLatitude] = useState(image.latitude?.toString() || '');
   const [longitude, setLongitude] = useState(image.longitude?.toString() || '');
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(
@@ -67,7 +70,17 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
 
     try {
       setIsSaving(true);
-      await api.updateImageGPS(image.filename, lat, lng);
+
+      if (isBatchMode && images) {
+        // Batch update all selected images
+        await Promise.all(
+          images.map(img => api.updateImageGPS(img.filename, lat, lng))
+        );
+      } else {
+        // Single image update
+        await api.updateImageGPS(image.filename, lat, lng);
+      }
+
       onSuccess();
       onClose();
     } catch (error) {
@@ -85,7 +98,13 @@ export default function GPSTagModal({ image, onClose, onSuccess }: GPSTagModalPr
         <div className="flex items-center justify-between p-6 border-b">
           <div>
             <h2 className="text-xl font-semibold">Tag GPS Location</h2>
-            <p className="text-sm text-gray-600 mt-1">{image.filename}</p>
+            {isBatchMode ? (
+              <p className="text-sm text-gray-600 mt-1">
+                Tagging {imageCount} {imageCount === 1 ? 'image' : 'images'}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600 mt-1">{image.filename}</p>
+            )}
           </div>
           <button
             onClick={onClose}
