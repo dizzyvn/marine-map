@@ -98,7 +98,7 @@ export default function Map({ images, selectedImage, onImageSelect }: MapProps) 
               <Popup>
                 <div className="p-2">
                   <img
-                    src={api.getImageUrl(image.filename)}
+                    src={api.getThumbnailUrl(image.filename)}
                     alt={image.filename}
                     className="w-48 h-32 object-cover rounded mb-2"
                   />

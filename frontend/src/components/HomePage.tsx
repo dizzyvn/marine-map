@@ -95,7 +95,7 @@ export default function HomePage() {
                   >
                     <div className="flex gap-3">
                       <img
-                        src={api.getImageUrl(image.filename)}
+                        src={api.getThumbnailUrl(image.filename)}
                         alt={image.filename}
                         className="w-16 h-16 object-cover rounded"
                       />
