@@ -319,3 +319,37 @@ async def update_image_gps(filename: str, gps_data: dict):
             return {"message": "GPS coordinates updated successfully", "image": img}
 
     raise HTTPException(status_code=404, detail="Image not found")
+
+
+@app.delete("/api/images/{filename}")
+async def delete_image(filename: str):
+    """Delete an image and its metadata."""
+    metadata = load_metadata()
+
+    # Find the image in metadata
+    image_found = False
+    for i, img in enumerate(metadata):
+        if img.get("filename") == filename:
+            metadata.pop(i)
+            image_found = True
+            break
+
+    if not image_found:
+        raise HTTPException(status_code=404, detail="Image not found in metadata")
+
+    # Delete the actual image file
+    image_path = FISHES_DIR / filename
+    if image_path.exists():
+        image_path.unlink()
+
+    # Delete the thumbnail if it exists
+    thumbnail_path = THUMBNAILS_DIR / f"thumb_{filename}"
+    if not thumbnail_path.suffix.lower() in ['.jpg', '.jpeg']:
+        thumbnail_path = thumbnail_path.with_suffix('.jpg')
+    if thumbnail_path.exists():
+        thumbnail_path.unlink()
+
+    # Save updated metadata
+    save_metadata(metadata)
+
+    return {"message": "Image deleted successfully"}

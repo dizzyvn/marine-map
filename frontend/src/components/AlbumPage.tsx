@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { MapPin, MapPinOff, Tag, Fish, Waves, Shell, Star, Check } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { MapPin, MapPinOff, Tag, Fish, Waves, Shell, Star, Check, MoreVertical, Trash2 } from 'lucide-react';
 import SearchBar from './SearchBar';
 import ImageCard from './ImageCard';
 import AdminUpload from './AdminUpload';
@@ -23,6 +23,8 @@ export default function AlbumPage() {
   const [taggingImage, setTaggingImage] = useState<ImageMetadata | null>(null);
   const [viewingImage, setViewingImage] = useState<ImageMetadata | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [openMenuImage, setOpenMenuImage] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const availableTags = [
     { id: 'fish', name: 'Fish', icon: Fish },
@@ -145,6 +147,49 @@ export default function AlbumPage() {
     const allFilenames = images.map(img => img.filename);
     setSelectedImages(allFilenames);
   };
+
+  const toggleImageMenu = (filename: string) => {
+    setOpenMenuImage(openMenuImage === filename ? null : filename);
+  };
+
+  const handleDeleteImage = async (image: ImageMetadata) => {
+    if (!confirm(`Are you sure you want to delete ${image.filename}?`)) return;
+
+    try {
+      await api.deleteImage(image.filename);
+      setOpenMenuImage(null);
+      loadAllImages();
+      loadImages();
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+      alert('Failed to delete image');
+    }
+  };
+
+  const handleAddLocation = (image: ImageMetadata) => {
+    setTaggingImage(image);
+    setOpenMenuImage(null);
+  };
+
+  const handleAddTag = (image: ImageMetadata) => {
+    setOpenMenuImage(null);
+    // TODO: Implement tag functionality
+    alert('Tag functionality coming soon!');
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuImage(null);
+      }
+    };
+
+    if (openMenuImage) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [openMenuImage]);
 
   const handleUploadSuccess = () => {
     loadAllImages(); // Reload all images for calendar
@@ -326,18 +371,51 @@ export default function AlbumPage() {
                           </div>
                         )}
 
-                        {/* Tag button - only shown when NOT in selection mode */}
+                        {/* Edit button with dropdown - only shown when NOT in selection mode */}
                         {!isSelectionMode && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTaggingImage(image);
-                            }}
-                            className="absolute top-2 right-2 bg-white hover:bg-primary-light text-primary p-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Tag GPS Location"
-                          >
-                            <Tag className="w-4 h-4" />
-                          </button>
+                          <div className="absolute top-2 right-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleImageMenu(image.filename);
+                              }}
+                              className="bg-white hover:bg-primary-light text-primary p-2 rounded-lg shadow-md transition-colors"
+                              title="Edit"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {openMenuImage === image.filename && (
+                              <div
+                                ref={menuRef}
+                                className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <button
+                                  onClick={() => handleAddLocation(image)}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <MapPin className="w-4 h-4" />
+                                  Add location
+                                </button>
+                                <button
+                                  onClick={() => handleAddTag(image)}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <Tag className="w-4 h-4" />
+                                  Add tag
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteImage(image)}
+                                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     );

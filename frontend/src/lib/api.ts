@@ -104,4 +104,14 @@ export const api = {
     if (!response.ok) throw new Error('Failed to update image GPS');
     return response.json();
   },
+
+  // Delete image
+  async deleteImage(filename: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/api/images/${filename}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) throw new Error('Failed to delete image');
+    return response.json();
+  },
 };
