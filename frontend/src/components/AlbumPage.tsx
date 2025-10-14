@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { MapPin, MapPinOff, Tag, Fish, Waves, Shell, Star, Check, MoreVertical, Trash2 } from 'lucide-react';
 import SearchBar from './SearchBar';
 import ImageCard from './ImageCard';
@@ -53,16 +53,16 @@ export default function AlbumPage() {
   }, [allImages]);
 
   // Load all images once for calendar (no filters)
-  const loadAllImages = async () => {
+  const loadAllImages = useCallback(async () => {
     try {
       const data = await api.getImages();
       setAllImages(data.images);
     } catch (error) {
       console.error('Failed to load all images:', error);
     }
-  };
+  }, []);
 
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     try {
       setLoading(true);
       const withGps = gpsFilter === 'with_gps';
@@ -92,7 +92,7 @@ export default function AlbumPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, gpsFilter, selectedDate]);
 
   // Load all images once on mount for calendar
   useEffect(() => {
@@ -101,49 +101,47 @@ export default function AlbumPage() {
 
   useEffect(() => {
     loadImages();
-  }, [searchQuery, gpsFilter, selectedTags, selectedDate]);
+  }, [loadImages]);
 
-  const toggleTag = (tagId: string) => {
+  const toggleTag = useCallback((tagId: string) => {
     setSelectedTags(prev =>
       prev.includes(tagId)
         ? prev.filter(t => t !== tagId)
         : [...prev, tagId]
     );
-  };
+  }, []);
 
-  const handleImageClick = (image: ImageMetadata) => {
-    if (isSelectionMode) {
-      toggleImageSelection(image.filename);
-    } else {
-      setViewingImage(image);
-    }
-  };
-
-  const toggleImageSelection = (filename: string) => {
+  const toggleImageSelection = useCallback((filename: string) => {
     setSelectedImages(prev =>
       prev.includes(filename)
         ? prev.filter(f => f !== filename)
         : [...prev, filename]
     );
-  };
+  }, []);
 
-  const toggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode);
+  const handleImageClick = useCallback((image: ImageMetadata) => {
     if (isSelectionMode) {
-      setSelectedImages([]);
+      toggleImageSelection(image.filename);
+    } else {
+      setViewingImage(image);
     }
-  };
+  }, [isSelectionMode, toggleImageSelection]);
 
-  const selectAllImages = () => {
+  const toggleSelectionMode = useCallback(() => {
+    setIsSelectionMode(prev => !prev);
+    setSelectedImages([]);
+  }, []);
+
+  const selectAllImages = useCallback(() => {
     const allFilenames = images.map(img => img.filename);
     setSelectedImages(allFilenames);
-  };
+  }, [images]);
 
-  const toggleImageMenu = (filename: string) => {
-    setOpenMenuImage(openMenuImage === filename ? null : filename);
-  };
+  const toggleImageMenu = useCallback((filename: string) => {
+    setOpenMenuImage(prev => prev === filename ? null : filename);
+  }, []);
 
-  const handleDeleteImage = async (image: ImageMetadata) => {
+  const handleDeleteImage = useCallback(async (image: ImageMetadata) => {
     if (!confirm(`Are you sure you want to delete ${image.filename}?`)) return;
 
     try {
@@ -155,20 +153,20 @@ export default function AlbumPage() {
       console.error('Failed to delete image:', error);
       alert('Failed to delete image');
     }
-  };
+  }, [loadAllImages, loadImages]);
 
-  const handleAddLocation = (image: ImageMetadata) => {
+  const handleAddLocation = useCallback((image: ImageMetadata) => {
     setTaggingImage(image);
     setOpenMenuImage(null);
-  };
+  }, []);
 
-  const handleAddTag = (image: ImageMetadata) => {
+  const handleAddTag = useCallback((image: ImageMetadata) => {
     setOpenMenuImage(null);
     // TODO: Implement tag functionality
     alert('Tag functionality coming soon!');
-  };
+  }, []);
 
-  const handleBatchAddLocation = () => {
+  const handleBatchAddLocation = useCallback(() => {
     if (selectedImages.length > 0) {
       const firstImage = images.find(img => img.filename === selectedImages[0]);
       if (firstImage) {
@@ -177,15 +175,15 @@ export default function AlbumPage() {
         setOpenBatchMenu(false);
       }
     }
-  };
+  }, [selectedImages, images]);
 
-  const handleBatchAddTag = () => {
+  const handleBatchAddTag = useCallback(() => {
     setOpenBatchMenu(false);
     // TODO: Implement batch tag functionality
     alert('Batch tag functionality coming soon!');
-  };
+  }, []);
 
-  const handleBatchDelete = async () => {
+  const handleBatchDelete = useCallback(async () => {
     if (!confirm(`Are you sure you want to delete ${selectedImages.length} ${selectedImages.length === 1 ? 'image' : 'images'}?`)) {
       return;
     }
@@ -201,7 +199,7 @@ export default function AlbumPage() {
       console.error('Failed to delete images:', error);
       alert('Failed to delete some images');
     }
-  };
+  }, [selectedImages, loadAllImages, loadImages]);
 
   // Close menus when clicking outside
   useEffect(() => {

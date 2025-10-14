@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarProps {
@@ -7,35 +7,52 @@ interface CalendarProps {
   onDateSelect: (date: string | null) => void;
 }
 
+const monthNames = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 export default function Calendar({ datesWithImages, selectedDate, onDateSelect }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  // Get first day of month and total days
-  const firstDayOfMonth = new Date(year, month, 1);
-  const lastDayOfMonth = new Date(year, month + 1, 0);
-  const daysInMonth = lastDayOfMonth.getDate();
-  const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
+  // Memoize calendar calculations
+  const calendarData = useMemo(() => {
+    // Get first day of month and total days
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const daysInMonth = lastDayOfMonth.getDate();
+    const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
 
-  // Month names
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
+    // Generate calendar days
+    const calendarDays: (number | null)[] = [];
 
-  // Navigate months
-  const previousMonth = () => {
+    // Add empty cells for days before month starts
+    for (let i = 0; i < startDayOfWeek; i++) {
+      calendarDays.push(null);
+    }
+
+    // Add days of month
+    for (let day = 1; day <= daysInMonth; day++) {
+      calendarDays.push(day);
+    }
+
+    return { calendarDays, daysInMonth };
+  }, [year, month]);
+
+  // Navigate months with useCallback
+  const previousMonth = useCallback(() => {
     setCurrentDate(new Date(year, month - 1, 1));
-  };
+  }, [year, month]);
 
-  const nextMonth = () => {
+  const nextMonth = useCallback(() => {
     setCurrentDate(new Date(year, month + 1, 1));
-  };
+  }, [year, month]);
 
-  // Handle date click
-  const handleDateClick = (day: number) => {
+  // Handle date click with useCallback
+  const handleDateClick = useCallback((day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
     if (selectedDate === dateStr) {
@@ -44,20 +61,7 @@ export default function Calendar({ datesWithImages, selectedDate, onDateSelect }
     } else {
       onDateSelect(dateStr);
     }
-  };
-
-  // Generate calendar days
-  const calendarDays: (number | null)[] = [];
-
-  // Add empty cells for days before month starts
-  for (let i = 0; i < startDayOfWeek; i++) {
-    calendarDays.push(null);
-  }
-
-  // Add days of month
-  for (let day = 1; day <= daysInMonth; day++) {
-    calendarDays.push(day);
-  }
+  }, [year, month, selectedDate, onDateSelect]);
 
   return (
     <div className="p-4 border-b border-gray-200">
@@ -94,7 +98,7 @@ export default function Calendar({ datesWithImages, selectedDate, onDateSelect }
         ))}
 
         {/* Calendar days */}
-        {calendarDays.map((day, index) => {
+        {calendarData.calendarDays.map((day, index) => {
           if (day === null) {
             return <div key={`empty-${index}`} className="aspect-square" />;
           }

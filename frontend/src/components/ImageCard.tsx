@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { MapPin, Calendar, Camera } from 'lucide-react';
 import type { ImageMetadata } from '../types';
 import { api } from '../lib/api';
@@ -7,7 +8,7 @@ interface ImageCardProps {
   onClick?: () => void;
 }
 
-export default function ImageCard({ image, onClick }: ImageCardProps) {
+function ImageCard({ image, onClick }: ImageCardProps) {
   const hasGps = image.latitude && image.longitude;
 
   return (
@@ -47,3 +48,5 @@ export default function ImageCard({ image, onClick }: ImageCardProps) {
     </div>
   );
 }
+
+export default memo(ImageCard);
