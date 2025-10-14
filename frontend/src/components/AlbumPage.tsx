@@ -358,35 +358,35 @@ export default function AlbumPage() {
                       className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                     >
                       <MoreVertical className="w-4 h-4" />
-                      Edit {selectedImages.length} {selectedImages.length === 1 ? 'Image' : 'Images'}
+                      Edit
                     </button>
 
                     {/* Batch Edit Dropdown Menu */}
                     {openBatchMenu && (
                       <div
                         ref={batchMenuRef}
-                        className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20"
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20"
                       >
                         <button
                           onClick={handleBatchAddLocation}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                         >
                           <MapPin className="w-4 h-4" />
-                          Add location to {selectedImages.length} {selectedImages.length === 1 ? 'image' : 'images'}
+                          Add location
                         </button>
                         <button
                           onClick={handleBatchAddTag}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                         >
                           <Tag className="w-4 h-4" />
-                          Add tag to {selectedImages.length} {selectedImages.length === 1 ? 'image' : 'images'}
+                          Add tag
                         </button>
                         <button
                           onClick={handleBatchDelete}
                           className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                         >
                           <Trash2 className="w-4 h-4" />
-                          Delete {selectedImages.length} {selectedImages.length === 1 ? 'image' : 'images'}
+                          Delete
                         </button>
                       </div>
                     )}
