@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MapPin, MapPinOff, Tag, Fish, Waves, Shell, Star, Check } from 'lucide-react';
 import SearchBar from './SearchBar';
 import ImageCard from './ImageCard';
 import AdminUpload from './AdminUpload';
 import GPSTagModal from './GPSTagModal';
 import ImageViewer from './ImageViewer';
+import Calendar from './Calendar';
 import { api } from '../lib/api';
 import type { ImageMetadata } from '../types';
 
@@ -20,6 +21,7 @@ export default function AlbumPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [taggingImage, setTaggingImage] = useState<ImageMetadata | null>(null);
   const [viewingImage, setViewingImage] = useState<ImageMetadata | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const availableTags = [
     { id: 'fish', name: 'Fish', icon: Fish },
@@ -27,6 +29,23 @@ export default function AlbumPage() {
     { id: 'shell', name: 'Shell', icon: Shell },
     { id: 'rare', name: 'Rare', icon: Star },
   ];
+
+  // Helper function to parse EXIF date format (YYYY:MM:DD HH:MM:SS) to YYYY-MM-DD
+  const parseImageDate = (datetimeoriginal?: string): string | null => {
+    if (!datetimeoriginal) return null;
+    const datePart = datetimeoriginal.split(' ')[0]; // Get "YYYY:MM:DD"
+    return datePart.replace(/:/g, '-'); // Convert to "YYYY-MM-DD"
+  };
+
+  // Compute set of dates that have images
+  const datesWithImages = useMemo(() => {
+    const dates = new Set<string>();
+    images.forEach(img => {
+      const date = parseImageDate(img.datetimeoriginal);
+      if (date) dates.add(date);
+    });
+    return dates;
+  }, [images]);
 
   const loadImages = async () => {
     try {
@@ -39,6 +58,14 @@ export default function AlbumPage() {
       // Apply GPS filter
       if (gpsFilter === 'without_gps') {
         filteredImages = filteredImages.filter(img => !img.latitude || !img.longitude);
+      }
+
+      // Apply date filter
+      if (selectedDate) {
+        filteredImages = filteredImages.filter(img => {
+          const imgDate = parseImageDate(img.datetimeoriginal);
+          return imgDate === selectedDate;
+        });
       }
 
       // TODO: Apply tag filters when backend supports tags
@@ -54,7 +81,7 @@ export default function AlbumPage() {
 
   useEffect(() => {
     loadImages();
-  }, [searchQuery, gpsFilter, selectedTags]);
+  }, [searchQuery, gpsFilter, selectedTags, selectedDate]);
 
   const toggleTag = (tagId: string) => {
     setSelectedTags(prev =>
@@ -120,6 +147,13 @@ export default function AlbumPage() {
               placeholder="Search by filename..."
             />
           </div>
+
+          {/* Calendar */}
+          <Calendar
+            datesWithImages={datesWithImages}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+          />
 
           {/* Filters */}
           <div className="flex-1 overflow-y-auto">
