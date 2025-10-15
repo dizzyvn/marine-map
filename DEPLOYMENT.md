@@ -50,14 +50,16 @@ This guide will walk you through deploying the Da Nang Marine Creature Map to pr
    - Railway automatically sets `DATABASE_URL` environment variable
    - No configuration needed! 🎉
 
-4. **Configure Environment Variables**:
+4. **Configure Environment Variables** (⚠️ CRITICAL):
    - Go to your service → "Variables" tab
    - Add these variables:
      ```
-     ALLOWED_ORIGINS=*
+     ALLOWED_ORIGINS=https://marine-map-nu.vercel.app
      FISHES_DIR=/app/fishes
      THUMBNAILS_DIR=/app/thumbnails
      ```
+   - **IMPORTANT**: Replace `https://marine-map-nu.vercel.app` with your actual Vercel URL
+   - For multiple domains: `https://marine-map-nu.vercel.app,https://yourdomain.com`
 
 5. **Deploy**:
    - Railway will automatically build and deploy
@@ -305,14 +307,43 @@ uvicorn main_db:app --reload
 2. Verify images were uploaded
 3. Check `FISHES_DIR` environment variable
 
-### Frontend Can't Connect to API
+### Frontend Can't Connect to API (CORS Errors)
 
-**Problem**: CORS errors or connection refused
+**Problem**: `Access-Control-Allow-Origin header is present` error in browser console
+
+**Cause**: Backend doesn't allow requests from your frontend domain
 
 **Solution**:
-1. Verify `VITE_API_URL` is set correctly in Vercel
-2. Check `ALLOWED_ORIGINS` in backend includes your frontend URL
-3. Verify backend is running: visit `/api/health`
+
+1. **Go to Railway Dashboard**:
+   - Navigate to your project
+   - Click on your backend service
+   - Go to "Variables" tab
+
+2. **Add or Update ALLOWED_ORIGINS**:
+   - If variable doesn't exist, click "New Variable"
+   - Name: `ALLOWED_ORIGINS`
+   - Value: `https://marine-map-nu.vercel.app` (your Vercel URL)
+   - Click "Add" or "Save"
+
+3. **Railway will automatically redeploy** (takes 1-2 minutes)
+
+4. **Verify the fix**:
+   - Open your Vercel frontend
+   - Open browser DevTools (F12) → Console tab
+   - Try to use the app
+   - CORS errors should be gone
+
+**For multiple domains**:
+```
+ALLOWED_ORIGINS=https://marine-map-nu.vercel.app,https://yourdomain.com,http://localhost:5173
+```
+
+**Common mistakes**:
+- ❌ `ALLOWED_ORIGINS=*` (wildcard doesn't work with credentials)
+- ❌ Trailing slash: `https://site.com/` (remove the `/`)
+- ❌ Wrong protocol: `http://` instead of `https://`
+- ✅ Correct: `https://marine-map-nu.vercel.app`
 
 ### Cold Start Issues (Render)
 
