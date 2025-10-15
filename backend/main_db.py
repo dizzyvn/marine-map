@@ -37,6 +37,7 @@ FISHES_DIR = Path(os.getenv("FISHES_DIR", BASE_DIR / "fishes"))
 THUMBNAILS_DIR = Path(os.getenv("THUMBNAILS_DIR", BASE_DIR / "backend" / "thumbnails"))
 
 # Create directories
+FISHES_DIR.mkdir(parents=True, exist_ok=True)
 THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Mount static files

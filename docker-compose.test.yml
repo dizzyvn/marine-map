@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: marine_user
+      POSTGRES_PASSWORD: marine_password
+      POSTGRES_DB: marine_map
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marine_user -d marine_map"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: marine-map-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://marine_user:marine_password@postgres:5432/marine_map
+      PORT: 8000
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/thumbnails:/app/thumbnails
+
+volumes:
+  postgres_data:
