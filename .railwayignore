@@ -1,0 +1,5 @@
+# Ignore frontend directory to prevent Node.js detection
+frontend/
+node_modules/
+package.json
+package-lock.json
