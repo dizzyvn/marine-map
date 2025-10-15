@@ -1,6 +1,5 @@
-# Force Python provider
-[providers]
-python = "3.11"
+# Use Python provider
+providers = ["python"]
 
 [phases.setup]
 nixPkgs = ["python311", "postgresql"]
