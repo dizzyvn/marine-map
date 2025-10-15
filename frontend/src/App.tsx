@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Map as MapIcon, MapPin, Grid3x3 } from 'lucide-react';
 import HomePage from './components/HomePage';

@@ -160,7 +160,7 @@ export default function AlbumPage() {
     setOpenMenuImage(null);
   }, []);
 
-  const handleAddTag = useCallback((image: ImageMetadata) => {
+  const handleAddTag = useCallback((_image: ImageMetadata) => {
     setOpenMenuImage(null);
     // TODO: Implement tag functionality
     alert('Tag functionality coming soon!');
@@ -401,9 +401,9 @@ export default function AlbumPage() {
               ) : images.length === 0 ? (
                 <div className="text-center text-gray-500 py-12">
                   No images found
-                  {showGpsOnly && (
+                  {gpsFilter === 'with_gps' && (
                     <p className="mt-2 text-sm">
-                      Try unchecking "GPS only" or tag images with GPS coordinates
+                      Try changing GPS filter or tag images with GPS coordinates
                     </p>
                   )}
                 </div>
