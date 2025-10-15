@@ -11,9 +11,10 @@ echo ""
 # Change to frontend directory
 cd frontend
 
-# Check if node_modules exists
-if [ ! -d "node_modules" ]; then
+# Check if node_modules exists or is incomplete
+if [ ! -d "node_modules" ] || [ ! -d "node_modules/@tailwindcss/postcss" ]; then
     echo "📦 Installing dependencies..."
+    rm -rf node_modules package-lock.json
     npm install
 else
     echo "✅ Dependencies already installed"
