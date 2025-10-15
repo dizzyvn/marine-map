@@ -2,9 +2,9 @@
 SQLAlchemy database models.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy import Column, String, Integer, Numeric, Boolean, DateTime, Text
+from sqlalchemy import Column, String, Integer, Numeric, Boolean, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
@@ -28,8 +28,8 @@ class Image(Base):
     latitude = Column(Numeric(10, 8))
     longitude = Column(Numeric(11, 8))
     manually_tagged = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     def to_dict(self) -> dict:
         """Convert model to dictionary."""
@@ -58,8 +58,8 @@ class Location(Base):
     latitude = Column(Numeric(10, 8), nullable=False)
     longitude = Column(Numeric(11, 8), nullable=False)
     description = Column(Text)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     def to_dict(self) -> dict:
         """Convert model to dictionary."""
