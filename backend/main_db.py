@@ -12,6 +12,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from PIL import Image as PILImage
 
@@ -98,7 +99,7 @@ async def root():
 async def health_check(db: Session = Depends(get_db)):
     """Health check endpoint."""
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except:
         return {"status": "unhealthy", "database": "disconnected"}

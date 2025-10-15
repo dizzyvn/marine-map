@@ -1,40 +1,55 @@
 # Local Development Start Scripts
 
-This project includes two start scripts that mimic the production deployment environments:
+This project includes two start scripts for local development and testing:
 
-## 🖥️ Backend (Railway-like)
+## 🖥️ Backend (Uses Docker)
 
 **Script:** `./start_backend.sh`
 
-This script starts the backend exactly as it runs on Railway:
-- Uses PostgreSQL database (local or Railway)
-- Runs `uvicorn main_db:app --host 0.0.0.0 --port $PORT`
-- Creates required directories (uploads, thumbnails)
-- Loads environment from `backend/.env`
+This script runs the backend in Docker, exactly as Railway does in production:
+- Builds Docker image from `backend/Dockerfile`
+- Starts PostgreSQL container automatically
+- Starts backend container with proper environment variables
+- Mounts local `uploads` and `thumbnails` directories
+- Shows logs automatically
 
 ### Prerequisites
 
-1. PostgreSQL running locally on port 5432 (or update DATABASE_URL in backend/.env)
-2. Python 3.11+ installed
+1. Docker Desktop installed and running
+2. That's it! Everything else is handled automatically.
 
 ### Quick Start
 
 ```bash
-# Start PostgreSQL locally (if using Docker)
-docker run --name postgres-marine \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=marine_creatures \
-  -p 5432:5432 \
-  -d postgres:15-alpine
-
-# Run backend
+# Start backend (will build image and start PostgreSQL automatically)
 ./start_backend.sh
 ```
 
-The backend will be available at: http://localhost:8000
+The script will:
+1. Build the Docker image
+2. Start PostgreSQL container (if not running)
+3. Start backend container
+4. Show logs (press Ctrl+C to exit logs, containers keep running)
 
-API docs: http://localhost:8000/docs
+**URLs:**
+- Backend API: http://localhost:8000
+- API docs: http://localhost:8000/docs
+- Health check: http://localhost:8000/api/health
+
+**Useful commands:**
+```bash
+# View logs
+docker logs -f marine-backend
+
+# Stop backend only
+docker stop marine-backend
+
+# Stop everything
+docker stop marine-backend marine-postgres
+
+# Remove everything
+docker rm marine-backend marine-postgres
+```
 
 ## 🌐 Frontend (Vercel-like)
 
@@ -77,50 +92,68 @@ Then open http://localhost:5173 in your browser.
 
 ## 📝 Environment Variables
 
-### Backend (`backend/.env`)
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/marine_creatures
-DEBUG=true
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
-FISHES_DIR=../fishes
-THUMBNAILS_DIR=./thumbnails
-```
+### Backend
+Environment variables are set automatically by the `start_backend.sh` script:
+- `DATABASE_URL`: Points to the PostgreSQL container
+- `PORT`: 8000
+- `ALLOWED_ORIGINS`: localhost:5173,localhost:3000
 
 ### Frontend (`frontend/.env`)
+The script will create this file automatically if it doesn't exist:
 ```env
 VITE_API_URL=http://localhost:8000
 ```
-
-## 🐳 Using Docker Compose (Alternative)
-
-If you prefer Docker:
-
-```bash
-docker-compose -f docker-compose.test.yml up
-```
-
-This will start both PostgreSQL and the backend in containers.
 
 ## 🔍 Troubleshooting
 
 ### Backend Issues
 
-**Database connection failed:**
-- Ensure PostgreSQL is running: `pg_isready -h localhost -p 5432`
-- Check DATABASE_URL in `backend/.env`
-- Verify database exists: `psql -U postgres -l`
+**Docker not running:**
+- Start Docker Desktop
+- Wait for Docker to fully start
 
-**Port already in use:**
-- Change PORT in `backend/.env`
-- Or kill the process: `lsof -ti:8000 | xargs kill`
+**Port 8000 already in use:**
+- Stop the old container: `docker stop marine-backend`
+- Or use a different port (edit start_backend.sh)
+
+**Database connection failed:**
+- Check if PostgreSQL container is running: `docker ps | grep postgres`
+- Restart PostgreSQL: `docker restart marine-postgres`
+- Check logs: `docker logs marine-postgres`
+
+**Build errors:**
+- Clear Docker cache: `docker system prune`
+- Rebuild: `docker build --no-cache -t marine-map-backend -f backend/Dockerfile .`
 
 ### Frontend Issues
 
 **API connection failed:**
-- Ensure backend is running on port 8000
-- Check VITE_API_URL in `frontend/.env`
-- Verify CORS settings in backend allow localhost:5173
+- Ensure backend is running: `docker ps | grep marine-backend`
+- Check backend logs: `docker logs marine-backend`
+- Verify CORS settings allow localhost:5173
 
 **Dependencies errors:**
 - Delete `frontend/node_modules` and run script again
 - Run `npm install` manually in frontend directory
+
+### General Tips
+
+**Fresh start:**
+```bash
+# Stop and remove all containers
+docker stop marine-backend marine-postgres
+docker rm marine-backend marine-postgres
+
+# Remove volumes (WARNING: deletes database data)
+docker volume prune
+
+# Start again
+./start_backend.sh
+```
+
+**Check what's running:**
+```bash
+docker ps                    # Running containers
+docker ps -a                 # All containers
+docker images                # Built images
+```

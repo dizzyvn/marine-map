@@ -1,77 +1,85 @@
 #!/bin/bash
 
-# Backend Start Script - Mimics Railway Docker Deployment
-# This script runs the backend exactly as it would run on Railway
+# Backend Start Script - Uses Docker (same as Railway deployment)
+# This script builds and runs the backend in Docker exactly as Railway does
 
 set -e
 
-echo "🐠 Starting Backend (Railway-like environment)..."
+echo "🐠 Starting Backend with Docker..."
 echo ""
 
-# Check if .env file exists
-if [ ! -f "backend/.env" ]; then
-    echo "⚠️  WARNING: backend/.env not found"
-    echo "📝 Creating backend/.env from .env.example..."
-    if [ -f "backend/.env.example" ]; then
-        cp backend/.env.example backend/.env
-        echo "✅ Created backend/.env - please update DATABASE_URL and other settings"
-    else
-        echo "❌ ERROR: backend/.env.example not found"
-        exit 1
-    fi
+# Check if Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ ERROR: Docker is not running"
+    echo "Please start Docker Desktop and try again"
+    exit 1
 fi
 
-# Source environment variables
-export $(grep -v '^#' backend/.env | xargs)
+# Build the Docker image
+echo "🔨 Building Docker image..."
+docker build -t marine-map-backend -f backend/Dockerfile . --quiet
 
-# Set default PORT if not set
-export PORT=${PORT:-8000}
-
-# Set default DATABASE_URL if not set (for local PostgreSQL)
-if [ -z "$DATABASE_URL" ]; then
-    export DATABASE_URL="postgresql://marine_user:marine_password@localhost:5432/marine_map"
-    echo "📊 Using local database: $DATABASE_URL"
+if [ $? -ne 0 ]; then
+    echo "❌ Docker build failed"
+    exit 1
 fi
 
-echo "🔧 Configuration:"
-echo "   PORT: $PORT"
-echo "   DATABASE_URL: ${DATABASE_URL%%\?*}" # Hide query params
+echo "✅ Docker image built successfully"
 echo ""
 
-# Change to backend directory
-cd backend
+# Check if PostgreSQL container is running
+if ! docker ps --format '{{.Names}}' | grep -q "marine-postgres"; then
+    echo "🐘 Starting PostgreSQL container..."
+    docker run -d \
+        --name marine-postgres \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_PASSWORD=postgres \
+        -e POSTGRES_DB=marine_creatures \
+        -p 5432:5432 \
+        postgres:15-alpine
 
-# Check if we're in Docker or local
-if [ -f "/.dockerenv" ]; then
-    echo "🐳 Running in Docker container"
-    # In Docker, dependencies are already installed
+    echo "⏳ Waiting for PostgreSQL to be ready..."
+    sleep 3
+    echo "✅ PostgreSQL started"
 else
-    echo "💻 Running locally"
-
-    # Check if virtual environment exists
-    if [ ! -d "venv" ]; then
-        echo "📦 Creating virtual environment..."
-        python3 -m venv venv
-    fi
-
-    # Activate virtual environment
-    echo "🔧 Activating virtual environment..."
-    source venv/bin/activate
-
-    # Install/update dependencies
-    echo "📥 Installing dependencies..."
-    pip install -q -r requirements.txt
-    echo ""
+    echo "✅ PostgreSQL container already running"
 fi
 
-# Create required directories
-mkdir -p uploads thumbnails
-
-# Start the server (exactly as Railway does)
-echo "🚀 Starting FastAPI server on http://0.0.0.0:$PORT..."
-echo "📡 API documentation: http://localhost:$PORT/docs"
-echo ""
-echo "Press Ctrl+C to stop"
 echo ""
 
-uvicorn main_db:app --host 0.0.0.0 --port $PORT
+# Stop and remove old backend container if exists
+if docker ps -a --format '{{.Names}}' | grep -q "marine-backend"; then
+    echo "🧹 Removing old backend container..."
+    docker stop marine-backend > /dev/null 2>&1 || true
+    docker rm marine-backend > /dev/null 2>&1 || true
+fi
+
+# Run the backend container
+echo "🚀 Starting backend container..."
+docker run -d \
+    --name marine-backend \
+    -p 8000:8000 \
+    -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/marine_creatures" \
+    -e PORT=8000 \
+    -e ALLOWED_ORIGINS="http://localhost:5173,http://localhost:3000" \
+    -v "$(pwd)/backend/uploads:/app/uploads" \
+    -v "$(pwd)/backend/thumbnails:/app/thumbnails" \
+    marine-map-backend
+
+echo ""
+echo "✅ Backend started successfully!"
+echo ""
+echo "📡 Backend API: http://localhost:8000"
+echo "📖 API Docs: http://localhost:8000/docs"
+echo "📊 Health Check: http://localhost:8000/api/health"
+echo ""
+echo "📋 Useful commands:"
+echo "   View logs:    docker logs -f marine-backend"
+echo "   Stop backend: docker stop marine-backend"
+echo "   Stop all:     docker stop marine-backend marine-postgres"
+echo ""
+echo "Press Ctrl+C to view logs (containers will keep running)"
+echo ""
+
+# Follow logs
+docker logs -f marine-backend
