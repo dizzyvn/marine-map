@@ -21,3 +21,10 @@ backend/data/*.json
 
 # Cached thumbnails
 backend/thumbnails/
+
+# Environment variables
+.env
+.env.local
+.env.production
+backend/.env
+frontend/.env

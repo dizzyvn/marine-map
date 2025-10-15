@@ -1,6 +1,7 @@
 import type { ImagesResponse, StatsResponse, ImageMetadata, LocationsResponse, Location } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000';
+// API base URL - uses environment variable in production, localhost in development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const api = {
   async getImages(search?: string, withGpsOnly?: boolean): Promise<ImagesResponse> {
